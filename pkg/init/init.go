@@ -19,7 +19,7 @@ func GetDB() *gorm.DB {
 		DB_NAME     = helper.GetEnvVar("DB_NAME")
 	)
 
-	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s port=5432 sslmode=disable", DB_USER, DB_PASSWORD, DB_NAME)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
@@ -43,7 +43,6 @@ func GetDB() *gorm.DB {
 		Email VARCHAR(255),
 		Password VARCHAR(255),
 		Role VARCHAR(255),
-		Refresh_token VARCHAR(255)
 	);`
 	connection.Exec(q)
 	fmt.Println("Connected to database")
