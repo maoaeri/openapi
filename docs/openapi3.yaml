@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Sample API
+  description: A sample API to illustrate OpenAPI concepts
+servers:
+  - url: http://localhost:8080/
+paths:
+  /users/signup:
+    post:
+      summary: Sign up user
+      operationId: SignUp
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+        required: true
+      responses:
+        '201':
+          description: Sign up successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+  /users/login:
+    post:
+      summary: Log in user
+      operationId: LogIn
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogInRequest'
+        required: true
+      responses:
+        '201':
+          description: Log in successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+  /users/{email}:
+    parameters:
+      - name: email
+        in: path
+        description: email of user
+        required: true
+        schema:
+          type: string
+          pattern: '\S[@]\S'
+    get:
+      summary: Get user
+      operationId: GetUser
+      responses:
+        '200':
+          description: Get user successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    put:
+      summary: Update user
+      operationId: UpdateUser
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        '201':
+          description: Update user successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    delete:
+      summary: Delete user
+      operationId: UpdateUser
+      parameters:
+        - name: jwt
+          in: cookie
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Delete user successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+  /posts:
+    post:
+      summary: Create post
+      operationId: CreatePost
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+        required: true
+      responses:
+        '201':
+          description: Create post successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    get:
+      summary: Get all post
+      operationId: GetAllPost
+      responses:
+        '200':
+          description: Get all post successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+  /posts/{postID}:
+    parameters:
+      - name: postID
+        in: path
+        description: ID of post
+        required: true
+        schema:
+          type: integer
+          format: int32
+    get:
+      summary: Get post
+      operationId: GetPost
+      responses:
+        '200':
+          description: Get post successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    put:
+      summary: Update post
+      operationId: UpdatePost
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+        required: true
+      responses:
+        '201':
+          description: Update post successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    delete:
+      summary: Delete post
+      operationId: DeletePost
+      parameters:
+        - name: jwt
+          in: cookie
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delete post successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+components:
+  schemas:
+    Response:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        description:
+          type: string
+    SignUpRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          pattern: '\S[@]\S'
+        password:
+          type: string
+    LogInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          pattern: '\S[@]\S'
+        password:
+          type: string
+    GetUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          pattern: '\S[@]\S'
+    UpdateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          pattern: '\S[@]\S'
+        password:
+          type: string
+    CreatePostRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+    UpdatePostRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+
+    

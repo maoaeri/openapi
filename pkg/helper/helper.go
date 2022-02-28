@@ -33,7 +33,7 @@ func Response(w http.ResponseWriter, message string) {
 func GenerateHash(password string) string {
 	hashpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
-		log.Fatalln("Error in generating password")
+		fmt.Print("Error in generating password")
 	}
 	hashstring := fmt.Sprintf("%s", hashpass)
 	return hashstring
@@ -113,8 +113,9 @@ func ExtractEmail(r *http.Request) (string, error) {
 
 //get environment variables
 func GetEnvVar(name string) string {
-	err := godotenv.Load("../.env")
+	err := godotenv.Load("D:/GolangPj/github.com/maoaeri/openapi/.env")
 	if err != nil {
+		fmt.Print(err)
 		log.Fatalf("Error loading .env file")
 	}
 	value := os.Getenv(name)

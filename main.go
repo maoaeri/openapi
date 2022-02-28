@@ -1,13 +1,7 @@
 package main
 
-import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
+import initapi "github.com/maoaeri/openapi/pkg/init"
 
 func main() {
-	router := gin.Default()
-
-	http.ListenAndServe(":8080", router)
+	initapi.Run()
 }
