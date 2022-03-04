@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -22,8 +23,9 @@ func OpenAPIInputValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		route, pathParams, err := router.FindRoute(c.Request)
 		if err != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}
@@ -37,8 +39,9 @@ func OpenAPIInputValidator() gin.HandlerFunc {
 			},
 		})
 		if err != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}

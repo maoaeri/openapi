@@ -6,7 +6,7 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	api "github.com/maoaeri/openapi/pkg/api/user"
+	api "github.com/maoaeri/openapi/pkg/api/database"
 	"github.com/maoaeri/openapi/pkg/helper"
 	"github.com/maoaeri/openapi/pkg/model"
 )
@@ -22,7 +22,9 @@ func JwtHandler() *jwt.GinJWTMiddleware {
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*model.User); ok {
-				v, _ = api.GetUser(v.Email)
+				connection := api.GetDB()
+				defer api.CloseDB(connection)
+				_ = connection.Find(&v, "email = ?", v.Email)
 				return jwt.MapClaims{
 					"email":    v.Email,
 					"userid":   v.UserID,
@@ -47,9 +49,13 @@ func JwtHandler() *jwt.GinJWTMiddleware {
 			email := loginVals.Email
 			password := loginVals.Password
 
-			user, err := api.GetUser(email)
-			if err != nil {
-				return nil, err
+			var user *model.User
+
+			connection := api.GetDB()
+			defer api.CloseDB(connection)
+			result := connection.Find(&user, "email = ?", email)
+			if result.Error != nil {
+				return nil, result.Error
 			}
 
 			if helper.CheckPasswordHash(password, user.Password) {

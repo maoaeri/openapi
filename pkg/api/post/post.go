@@ -21,12 +21,16 @@ func CreatePostHandler(c *gin.Context) {
 	err := c.BindJSON(&post)
 	if err != nil {
 		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
 	}
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -36,8 +40,9 @@ func CreatePostHandler(c *gin.Context) {
 
 	result := connection.Create(&post)
 	if result.Error != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": result.Error.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	} else {
@@ -56,8 +61,9 @@ func UpdatePostHandler(c *gin.Context) {
 
 	postid, err := strconv.Atoi(c.Param("postid"))
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -67,8 +73,9 @@ func UpdatePostHandler(c *gin.Context) {
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -82,8 +89,9 @@ func UpdatePostHandler(c *gin.Context) {
 		result := connection.Model(&post).Where("post_id = ?", postid).Updates(data)
 
 		if result.Error != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": result.Error.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}
@@ -106,8 +114,9 @@ func DeletePostHandler(c *gin.Context) {
 
 	postid, err := strconv.Atoi(c.Param("postid"))
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -117,8 +126,9 @@ func DeletePostHandler(c *gin.Context) {
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -127,8 +137,9 @@ func DeletePostHandler(c *gin.Context) {
 		result := connection.Delete(&post)
 
 		if result.Error != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": result.Error.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}
@@ -151,8 +162,9 @@ func GetPostHandler(c *gin.Context) {
 
 	postid, err := strconv.Atoi(c.Param("postid"))
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -168,16 +180,18 @@ func GetPostHandler(c *gin.Context) {
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
 
 	if post.UserID == uint(claims["userid"].(float64)) || claims["role"].(string) == "admin" {
 		if result.Error != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": result.Error.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}
@@ -202,8 +216,9 @@ func GetAllPostsHandler(c *gin.Context) {
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+			"message": "An error ocurred",
 		})
 		return
 	}
@@ -211,8 +226,9 @@ func GetAllPostsHandler(c *gin.Context) {
 	if claims["role"].(string) == "admin" {
 		result := connection.Find(&posts)
 		if result.Error != nil {
+			fmt.Println(err.Error())
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": result.Error.Error(),
+				"message": "An error ocurred",
 			})
 			return
 		}
@@ -221,8 +237,14 @@ func GetAllPostsHandler(c *gin.Context) {
 
 		current_page, _ := strconv.Atoi(c.Query("page"))
 		if len(posts) >= (current_page-1)*10+1 {
-			for i := (current_page-1)*10 + 1; i <= current_page*10; i++ {
-				output = append(output, posts[i])
+			if len(posts) >= current_page*10 {
+				for i := (current_page-1)*10 + 1; i <= current_page*10; i++ {
+					output = append(output, posts[i])
+				}
+			} else {
+				for i := (current_page-1)*10 + 1; i <= len(posts); i++ {
+					output = append(output, posts[i])
+				}
 			}
 			c.JSON(http.StatusAccepted, output)
 			return

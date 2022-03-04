@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/maoaeri/openapi/pkg/helper"
 	"gorm.io/driver/postgres"
@@ -22,16 +21,16 @@ func GetDB() *gorm.DB {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	sqldb, err := connection.DB()
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	if err = sqldb.Ping(); err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	fmt.Println("Connected to database")
@@ -41,7 +40,7 @@ func GetDB() *gorm.DB {
 func CloseDB(connection *gorm.DB) {
 	sqldb, err := connection.DB()
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	sqldb.Close()
 }

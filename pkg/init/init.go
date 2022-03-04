@@ -26,6 +26,8 @@ func InitRouter() {
 		user_routes.DELETE("/:email", user.DeleteUserHandler)
 		user_routes.GET("/:email", user.GetUserHandler)
 		user_routes.PUT("/:email", user.UpdateUserHandler)
+		user_routes.GET("", user.GetAllUsersHandler)
+		user_routes.DELETE("", user.DeleteAllUsersHandler)
 	}
 	post_routes := router.Group("/posts")
 	{

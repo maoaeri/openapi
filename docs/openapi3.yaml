@@ -40,6 +40,43 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Response'
+  /users/logout:
+    post:
+      summary: Log out user
+      operationId: LogOut
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogInRequest'
+      responses:
+        '200':
+          description: Log out successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+  /users:
+    get:
+      summary: Get all users
+      operationId: GetAllUsers
+      responses:
+        '200':
+          description: Get all users successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+    delete:
+      summary: Delete all users
+      operationId: DeleteAllUsers
+      responses:
+        '200':
+          description: Delete all users successfully
+          content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
   /users/{email}:
     parameters:
       - name: email
@@ -177,8 +214,6 @@ components:
         code:
           type: integer
           format: int32
-        message:
-          type: string
         description:
           type: string
     SignUpRequest:
