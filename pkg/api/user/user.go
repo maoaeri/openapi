@@ -36,7 +36,7 @@ func SignUpHandler(c *gin.Context) {
 		fmt.Println(err.Error())
 	}
 
-	if user.UserName == "" || user.Email == "" || user.Password == "" {
+	if user.Username == "" || user.Email == "" || user.Password == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "Username, email and password cannot be blank.",
 		})
@@ -45,7 +45,7 @@ func SignUpHandler(c *gin.Context) {
 
 	var dbuser model.User
 	result := connection.Where("email = ?", user.Email).First(&dbuser)
-	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	if result.Error.Error() != "record not found" { //result.Error.Error() != "record not found"
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "Email already in use.",
 		})

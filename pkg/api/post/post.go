@@ -1,11 +1,13 @@
 package post
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	jwt_handler "github.com/maoaeri/openapi/pkg/api"
 	"github.com/maoaeri/openapi/pkg/api/database"
 	"github.com/maoaeri/openapi/pkg/model"
@@ -36,11 +38,11 @@ func CreatePostHandler(c *gin.Context) {
 	}
 
 	post.UserID = uint(claims["userid"].(float64))
-	post.UserName = claims["username"].(string)
+	post.Username = claims["username"].(string)
 
 	result := connection.Create(&post)
 	if result.Error != nil {
-		fmt.Println(err.Error())
+		fmt.Println(result.Error.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": "An error ocurred",
 		})
@@ -168,8 +170,8 @@ func GetPostHandler(c *gin.Context) {
 		})
 		return
 	}
-	result := connection.Where("post_id = ?", postid).First(&post)
-	if result.Error.Error() == "record not found" {
+	result := connection.Where("postid = ?", postid).First(&post)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"message": "Cannot find post.",
 		})

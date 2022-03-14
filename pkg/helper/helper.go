@@ -27,7 +27,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 //get environment variables
 func GetEnvVar(name string) string {
-	err := godotenv.Load("D:/GolangPj/github.com/maoaeri/openapi/.env")
+	err := godotenv.Load("C:/Users/mao/Documents/GitHub/openapi/.env")
 	if err != nil {
 		fmt.Print(err)
 		log.Fatalf("Error loading .env file")

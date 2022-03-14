@@ -28,7 +28,7 @@ func JwtHandler() *jwt.GinJWTMiddleware {
 				return jwt.MapClaims{
 					"email":    v.Email,
 					"userid":   v.UserID,
-					"username": v.UserName,
+					"username": v.Username,
 					"role":     v.Role,
 				}
 			}

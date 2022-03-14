@@ -13,7 +13,7 @@ type UserLoginInfo struct {
 
 type User struct {
 	UserID    uint   `gorm:"primaryKey" json:"userid"`
-	UserName  string `json:"username"`
+	Username  string `json:"username"`
 	Email     string `gorm:"unique" json:"email"`
 	Password  string `json:"password"`
 	Role      string `json:"role"`

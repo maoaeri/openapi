@@ -11,7 +11,7 @@ import (
 )
 
 func OpenAPIInputValidator() gin.HandlerFunc {
-	doc, err := openapi3.NewLoader().LoadFromFile("D:/GolangPj/github.com/maoaeri/openapi/docs/openapi3.yaml")
+	doc, err := openapi3.NewLoader().LoadFromFile("C:/Users/mao/Documents/GitHub/openapi/docs/openapi3.yaml")
 	if err != nil {
 		panic(err)
 	}
