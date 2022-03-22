@@ -6,7 +6,7 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	api "github.com/maoaeri/openapi/pkg/api/database"
+	api "github.com/maoaeri/openapi/pkg/database"
 	"github.com/maoaeri/openapi/pkg/helper"
 	"github.com/maoaeri/openapi/pkg/model"
 )
@@ -28,7 +28,7 @@ func JwtHandler() *jwt.GinJWTMiddleware {
 				return jwt.MapClaims{
 					"email":    v.Email,
 					"userid":   v.UserID,
-					"username": v.UserName,
+					"username": v.Username,
 					"role":     v.Role,
 				}
 			}

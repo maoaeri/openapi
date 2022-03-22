@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	jwt_handler "github.com/maoaeri/openapi/pkg/api"
-	api "github.com/maoaeri/openapi/pkg/api/database"
+	api "github.com/maoaeri/openapi/pkg/database"
 	"github.com/maoaeri/openapi/pkg/helper"
 	"github.com/maoaeri/openapi/pkg/model"
 )
@@ -36,7 +36,7 @@ func SignUpHandler(c *gin.Context) {
 		fmt.Println(err.Error())
 	}
 
-	if user.UserName == "" || user.Email == "" || user.Password == "" {
+	if user.Username == "" || user.Email == "" || user.Password == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "Username, email and password cannot be blank.",
 		})

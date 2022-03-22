@@ -2,11 +2,19 @@ package database
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/maoaeri/openapi/pkg/helper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+type singleton struct {
+	DB *gorm.DB
+}
+
+var instance *singleton
+var once sync.Once
 
 func GetDB() *gorm.DB {
 
@@ -35,6 +43,14 @@ func GetDB() *gorm.DB {
 
 	fmt.Println("Connected to database")
 	return connection
+}
+
+func GetDBInstance() *singleton {
+	connection := GetDB()
+	once.Do(func() {
+		instance = &singleton{DB: connection}
+	})
+	return instance
 }
 
 func CloseDB(connection *gorm.DB) {

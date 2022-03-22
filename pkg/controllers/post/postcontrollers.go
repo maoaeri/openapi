@@ -1,4 +1,4 @@
-package post
+package postcontrollers
 
 import (
 	"fmt"
@@ -9,15 +9,18 @@ import (
 	jwt_handler "github.com/maoaeri/openapi/pkg/api"
 	"github.com/maoaeri/openapi/pkg/database"
 	"github.com/maoaeri/openapi/pkg/model"
+	"github.com/maoaeri/openapi/pkg/services/postservice"
 )
 
-func CreatePostHandler(c *gin.Context) {
-	connection := database.GetDB()
-	defer database.CloseDB(connection)
+type PostController struct {
+	postservice.IPostService
+}
+
+func (controllers *PostController) CreatePostHandler(c *gin.Context) {
 
 	authmiddleware := jwt_handler.JwtHandler()
 
-	var post model.Post
+	var post *model.Post
 	err := c.BindJSON(&post)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -28,21 +31,19 @@ func CreatePostHandler(c *gin.Context) {
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
 	if err != nil {
-		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
+			"message": err.Error(),
 		})
 		return
 	}
 
 	post.UserID = uint(claims["userid"].(float64))
-	post.UserName = claims["username"].(string)
+	post.Username = claims["username"].(string)
 
-	result := connection.Create(&post)
-	if result.Error != nil {
-		fmt.Println(err.Error())
+	err = controllers.CreatePostService(post)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
+			"message": err.Error(),
 		})
 		return
 	} else {
@@ -53,11 +54,9 @@ func CreatePostHandler(c *gin.Context) {
 	}
 }
 
-func UpdatePostHandler(c *gin.Context) {
-	connection := database.GetDB()
-	defer database.CloseDB(connection)
+func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
 
-	var post model.Post
+	var post *model.Post
 
 	postid, err := strconv.Atoi(c.Param("postid"))
 	if err != nil {
@@ -67,6 +66,7 @@ func UpdatePostHandler(c *gin.Context) {
 		})
 		return
 	}
+
 	connection.Where("post_id = ?", postid).First(&post)
 
 	authmiddleware := jwt_handler.JwtHandler()
