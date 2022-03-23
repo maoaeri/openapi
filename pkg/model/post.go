@@ -7,9 +7,8 @@ import (
 )
 
 type Post struct {
-	PostID    uint   `gorm:"primaryKey" json:"postid"`
-	UserID    uint   `json:"userid"`
-	Username  string `json:"username"`
+	PostID    int    `gorm:"primaryKey" json:"postid"`
+	UserID    int    `json:"userid"`
 	Content   string `json:"content"`
 	CreatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`

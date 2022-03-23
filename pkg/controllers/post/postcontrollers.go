@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	jwt_handler "github.com/maoaeri/openapi/pkg/api"
-	"github.com/maoaeri/openapi/pkg/database"
 	"github.com/maoaeri/openapi/pkg/model"
 	"github.com/maoaeri/openapi/pkg/services/postservice"
 )
@@ -37,17 +36,16 @@ func (controllers *PostController) CreatePostHandler(c *gin.Context) {
 		return
 	}
 
-	post.UserID = uint(claims["userid"].(float64))
-	post.Username = claims["username"].(string)
+	post.UserID = int(claims["userid"].(float64))
 
-	err = controllers.CreatePostService(post)
+	code, err := controllers.CreatePostService(post)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(code, gin.H{
 			"message": err.Error(),
 		})
 		return
 	} else {
-		c.JSON(http.StatusCreated, gin.H{
+		c.JSON(code, gin.H{
 			"message": "Post created successfully.",
 			"info":    post,
 		})
@@ -55,6 +53,101 @@ func (controllers *PostController) CreatePostHandler(c *gin.Context) {
 }
 
 func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
+
+	postid, err := strconv.Atoi(c.Param("postid"))
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
+		return
+	}
+
+	var data map[string]interface{}
+	err = c.BindJSON(&data)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
+	}
+
+	authmiddleware := jwt_handler.JwtHandler()
+
+	claims, err := authmiddleware.GetClaimsFromJWT(c)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
+		return
+	}
+	userid_token := int(claims["userid"].(float64))
+
+	code, err := controllers.UpdatePostService(postid, userid_token, data)
+
+	if err != nil {
+		c.AbortWithStatusJSON(code, gin.H{
+			"message": "An error ocurred",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post updated successfully",
+	})
+	return
+}
+
+func (controllers *PostController) DeleteAllPostsHandler(c *gin.Context) {
+	code, err := controllers.DeleteAllPostsService()
+	if err != nil {
+		c.AbortWithStatusJSON(code, gin.H{
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "All users deleted.",
+		})
+	}
+}
+
+func (controllers *PostController) DeletePostHandler(c *gin.Context) {
+
+	postid, err := strconv.Atoi(c.Param("postid"))
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
+		return
+	}
+	authmiddleware := jwt_handler.JwtHandler()
+
+	claims, err := authmiddleware.GetClaimsFromJWT(c)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "An error ocurred",
+		})
+		return
+	}
+	userid_token := int(claims["userid"].(float64))
+
+	code, err := controllers.DeletePostService(postid, userid_token)
+
+	if err != nil {
+		c.AbortWithStatusJSON(code, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "Post deleted successfully",
+	})
+	return
+}
+
+func (controllers *PostController) GetPostHandler(c *gin.Context) {
 
 	var post *model.Post
 
@@ -67,191 +160,30 @@ func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
 		return
 	}
 
-	connection.Where("post_id = ?", postid).First(&post)
-
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
+	post, code, err := controllers.GetPostService(postid)
 	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
+		c.AbortWithStatusJSON(code, gin.H{
+			"message": err.Error(),
 		})
 		return
 	}
-
-	if post.UserID == uint(claims["userid"].(float64)) || claims["role"].(string) == "admin" {
-		var data map[string]interface{}
-		err = c.BindJSON(&data)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		result := connection.Model(&post).Where("post_id = ?", postid).Updates(data)
-
-		if result.Error != nil {
-			fmt.Println(err.Error())
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "An error ocurred",
-			})
-			return
-		}
-		c.JSON(http.StatusAccepted, gin.H{
-			"message": "Post updated successfully",
-		})
-		return
-	} else {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Cannot update other user's post.",
-		})
-	}
+	c.JSON(http.StatusOK, gin.H{
+		"info": post,
+	})
+	return
 }
 
-func DeletePostHandler(c *gin.Context) {
-	connection := database.GetDB()
-	defer database.CloseDB(connection)
+func (controllers *PostController) GetAllPostsHandler(c *gin.Context) {
+	current_page, _ := strconv.Atoi(c.Query("page"))
 
-	var post model.Post
+	posts, code, err := controllers.GetAllPostsService(current_page)
 
-	postid, err := strconv.Atoi(c.Param("postid"))
 	if err != nil {
-		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
+			"message": err.Error(),
 		})
 		return
 	}
-	connection.Where("post_id = ?", postid).First(&post)
-
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-
-	if post.UserID == uint(claims["userid"].(float64)) || claims["role"].(string) == "admin" {
-		result := connection.Delete(&post)
-
-		if result.Error != nil {
-			fmt.Println(err.Error())
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "An error ocurred",
-			})
-			return
-		}
-		c.JSON(http.StatusAccepted, gin.H{
-			"message": "Post deleted successfully",
-		})
-		return
-	} else {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Cannot delete other user's post.",
-		})
-	}
-}
-
-func GetPostHandler(c *gin.Context) {
-	connection := database.GetDB()
-	defer database.CloseDB(connection)
-
-	var post model.Post
-
-	postid, err := strconv.Atoi(c.Param("postid"))
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-	result := connection.Where("post_id = ?", postid).First(&post)
-	if result.Error.Error() == "record not found" {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"message": "Cannot find post.",
-		})
-		return
-	}
-
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-
-	if post.UserID == uint(claims["userid"].(float64)) || claims["role"].(string) == "admin" {
-		if result.Error != nil {
-			fmt.Println(err.Error())
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "An error ocurred",
-			})
-			return
-		}
-		c.JSON(http.StatusAccepted, gin.H{
-			"info": post,
-		})
-		return
-	} else {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Cannot read other user's post.",
-		})
-	}
-}
-
-func GetAllPostsHandler(c *gin.Context) {
-	connection := database.GetDB()
-	defer database.CloseDB(connection)
-
-	var posts []model.Post
-
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-
-	if claims["role"].(string) == "admin" {
-		result := connection.Find(&posts)
-		if result.Error != nil {
-			fmt.Println(err.Error())
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "An error ocurred",
-			})
-			return
-		}
-
-		var output []model.Post
-
-		current_page, _ := strconv.Atoi(c.Query("page"))
-		if len(posts) >= (current_page-1)*10+1 {
-			if len(posts) >= current_page*10 {
-				for i := (current_page-1)*10 + 1; i <= current_page*10; i++ {
-					output = append(output, posts[i])
-				}
-			} else {
-				for i := (current_page-1)*10 + 1; i <= len(posts); i++ {
-					output = append(output, posts[i])
-				}
-			}
-			c.JSON(http.StatusAccepted, output)
-			return
-		}
-	} else {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Cannot read all posts.",
-		})
-	}
+	c.JSON(code, posts)
+	return
 }

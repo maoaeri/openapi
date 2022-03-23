@@ -20,9 +20,9 @@ func NewPostRepo(db *gorm.DB) *PostRepo {
 type IPostRepository interface {
 	CreatePost(post *model.Post) error
 	GetAllPosts(page int) (posts []model.Post, err error)
-	GetPost(postid string) (post *model.Post, err error)
-	UpdatePost(postid string, data map[string]interface{}) error
-	DeletePost(postid string) error
+	GetPost(postid int) (post *model.Post, err error)
+	UpdatePost(postid int, data map[string]interface{}) error
+	DeletePost(postid int) error
 	DeleteAllPosts() error
 }
 
@@ -47,7 +47,7 @@ func (postrepo *PostRepo) GetAllPosts(page int) (posts []model.Post, err error) 
 }
 
 //Get post by id
-func (postrepo *PostRepo) GetPost(postid string) (post *model.Post, err error) {
+func (postrepo *PostRepo) GetPost(postid int) (post *model.Post, err error) {
 
 	result := postrepo.DB.Where("post_id = ?", postid).First(&post)
 	if result.Error != nil {
@@ -57,7 +57,7 @@ func (postrepo *PostRepo) GetPost(postid string) (post *model.Post, err error) {
 	return post, nil
 }
 
-func (postrepo *PostRepo) UpdatePost(postid string, data map[string]interface{}) error {
+func (postrepo *PostRepo) UpdatePost(postid int, data map[string]interface{}) error {
 
 	post, _ := postrepo.GetPost(postid)
 	result := postrepo.DB.Model(&post).Where("post_id = ?", postid).Updates(data)
@@ -68,7 +68,7 @@ func (postrepo *PostRepo) UpdatePost(postid string, data map[string]interface{})
 	return nil
 }
 
-func (postrepo *PostRepo) DeletePost(postid string) error {
+func (postrepo *PostRepo) DeletePost(postid int) error {
 
 	var post *model.Post
 	post, _ = postrepo.GetPost(postid)

@@ -5,11 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	jwt_handler "github.com/maoaeri/openapi/pkg/api"
-	"github.com/maoaeri/openapi/pkg/api/post"
-	controllers "github.com/maoaeri/openapi/pkg/controllers/user"
+	controllers "github.com/maoaeri/openapi/pkg/controllers"
+	postcontrollers "github.com/maoaeri/openapi/pkg/controllers/post"
+	usercontrollers "github.com/maoaeri/openapi/pkg/controllers/user"
 	"github.com/maoaeri/openapi/pkg/database"
 	"github.com/maoaeri/openapi/pkg/middleware"
+	"github.com/maoaeri/openapi/pkg/repositories/postrepo"
 	"github.com/maoaeri/openapi/pkg/repositories/userrepo"
+	"github.com/maoaeri/openapi/pkg/services/postservice"
 	"github.com/maoaeri/openapi/pkg/services/userservice"
 )
 
@@ -19,8 +22,12 @@ func CreateRouter() {
 	router = gin.Default()
 }
 
-func InitController() *controllers.UserController {
-	controller := controllers.UserController{&userservice.UserService{userrepo.NewUserRepo(database.GetDBInstance().DB)}}
+func InitController() *controllers.Controllers {
+	db := database.GetDBInstance().DB
+	controller := controllers.Controllers{
+		UserController: &usercontrollers.UserController{&userservice.UserService{userrepo.NewUserRepo(db)}},
+		PostController: &postcontrollers.PostController{&postservice.PostService{postrepo.NewPostRepo(db)}},
+	}
 	return &controller
 }
 
@@ -31,20 +38,21 @@ func InitRouter() {
 	{
 		user_routes.POST("/login", jwt_handler.JwtHandler().LoginHandler)
 		user_routes.POST("/logout", jwt_handler.JwtHandler().LogoutHandler)
-		user_routes.POST("/signup", controllers.SignUpHandler)
-		user_routes.DELETE("/:email", controllers.DeleteUserHandler)
-		user_routes.GET("/:email", controllers.GetUserHandler)
-		user_routes.PUT("/:email", controllers.UpdateUserHandler)
-		user_routes.GET("", controllers.GetAllUsersHandler)
-		user_routes.DELETE("", controllers.DeleteAllUsersHandler)
+		user_routes.POST("/signup", controllers.UserController.SignUpHandler)
+		user_routes.DELETE("/:email", controllers.UserController.DeleteUserHandler)
+		user_routes.GET("/:email", controllers.UserController.GetUserHandler)
+		user_routes.PUT("/:email", controllers.UserController.UpdateUserHandler)
+		user_routes.GET("/", controllers.UserController.GetAllUsersHandler)
+		user_routes.DELETE("/", controllers.UserController.DeleteAllUsersHandler)
 	}
 	post_routes := router.Group("/posts")
 	{
-		post_routes.POST("", post.CreatePostHandler)
-		post_routes.PUT("/:postid", post.UpdatePostHandler)
-		post_routes.DELETE("/:postid", post.DeletePostHandler)
-		post_routes.GET("/:postid", post.GetPostHandler)
-		post_routes.GET("", post.GetAllPostsHandler)
+		post_routes.POST("/", controllers.PostController.CreatePostHandler)
+		post_routes.PUT("/:postid", controllers.PostController.UpdatePostHandler)
+		post_routes.DELETE("/:postid", controllers.PostController.DeletePostHandler)
+		post_routes.GET("/:postid", controllers.PostController.GetPostHandler)
+		post_routes.GET("/", controllers.PostController.GetAllPostsHandler)
+		post_routes.DELETE("/", controllers.PostController.DeleteAllPostsHandler)
 	}
 }
 
