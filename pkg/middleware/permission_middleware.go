@@ -3,9 +3,10 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	jwt_handler "github.com/maoaeri/openapi/pkg/api"
+	jwt_handler "github.com/maoaeri/openapi/pkg"
 )
 
 type permInfo struct {
@@ -16,28 +17,16 @@ type permInfo struct {
 //only user can access
 var userPerm = []permInfo{
 	{
-		prefix:  "/posts/",
+		prefix:  "/posts",
 		methods: []string{"POST", "GET"},
 	},
 	{
-		prefix:  "/posts/:postid",
+		prefix:  "/posts/",
 		methods: []string{"PUT", "GET", "DELETE"},
 	},
 	{
-		prefix:  "/users/:email",
+		prefix:  "/users/",
 		methods: []string{"PUT", "GET", "DELETE"},
-	},
-}
-
-//anyone can access
-var publicPerm = []permInfo{
-	{
-		prefix:  "/users/login",
-		methods: []string{"POST"},
-	},
-	{
-		prefix:  "/users/signup",
-		methods: []string{"POST"},
 	},
 }
 
@@ -52,21 +41,11 @@ func Rejected(c *gin.Context, role string) bool {
 
 	if role == "user" {
 		for _, info_perm := range userPerm {
-			if path == info_perm.prefix {
+			if strings.HasPrefix(path, info_perm.prefix) {
 				for _, med := range info_perm.methods {
 					if method == med {
 						return false
 					}
-				}
-			}
-		}
-	}
-
-	for _, info_perm := range publicPerm {
-		if path == info_perm.prefix {
-			for _, med := range info_perm.methods {
-				if method == med {
-					return false
 				}
 			}
 		}
@@ -78,7 +57,7 @@ func Rejected(c *gin.Context, role string) bool {
 
 //serve this func if permission is denied
 func PermissionDenied(c *gin.Context) {
-	c.JSON(http.StatusForbidden, gin.H{
+	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 		"message": "Permission denied.",
 	})
 	return
@@ -88,6 +67,7 @@ func PermissionDenied(c *gin.Context) {
 func PermissionMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+
 		authmiddleware := jwt_handler.JwtHandler()
 		claims, err := authmiddleware.GetClaimsFromJWT(c)
 		if err != nil {
