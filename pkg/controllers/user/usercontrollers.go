@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	jwt_handler "github.com/maoaeri/openapi/pkg/api"
+	jwt_handler "github.com/maoaeri/openapi/pkg"
 	"github.com/maoaeri/openapi/pkg/model"
 	"github.com/maoaeri/openapi/pkg/services/userservice"
 )

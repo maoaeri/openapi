@@ -87,7 +87,7 @@ func JwtHandler() *jwt.GinJWTMiddleware {
 
 		TimeFunc: time.Now,
 
-		SendCookie: true,
+		SendAuthorization: true,
 	})
 	if err != nil {
 		log.Fatalln("JWT Error:" + err.Error())
