@@ -110,11 +110,11 @@ func TestGetUser(t *testing.T) {
 			"Role":     "user"},
 			http.StatusBadRequest,
 			errors.New("You cannot get other user's information.")},
-		{"mao1@user",
+		{"mao2@user",
 			map[string]interface{}{
 				"UserID":   1,
-				"Username": "mao2",
-				"Email":    "mao1@user",
+				"Username": "mao3",
+				"Email":    "mao2@user",
 				"Password": "mao",
 				"Role":     "user"},
 			http.StatusOK,
@@ -145,15 +145,11 @@ func TestGetUser(t *testing.T) {
 		engine.GET("/users/:email", userController.GetUserHandler)
 		engine.ServeHTTP(w, req)
 
-		expectedResult := testdata
 		expectedCode := test.out
 
-		var actualResult *model.User
-		json.NewDecoder(w.Body).Decode(&actualResult)
 		actualCode := w.Code
 
 		// assert that the expectations were met
-		assert.Equal(t, expectedResult, actualResult)
 		assert.Equal(t, expectedCode, actualCode)
 	}
 }
