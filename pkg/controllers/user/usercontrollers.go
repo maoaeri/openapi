@@ -71,6 +71,7 @@ func (controllers *UserController) GetUserHandler(c *gin.Context) {
 	user, code, err := controllers.GetUserService(email_param, email_token)
 
 	if err != nil {
+		fmt.Print(err.Error())
 		c.AbortWithStatusJSON(code, gin.H{
 			"message": err.Error(),
 		})
