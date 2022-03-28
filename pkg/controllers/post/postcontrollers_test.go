@@ -1,4 +1,4 @@
-package usercontrollers
+package postcontrollers
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ import (
 var errBadRequest = errors.New("bad request error")
 var errInternalServer = errors.New("internal server error")
 
-func TestSignUp(t *testing.T) {
+func TestCreatePost(t *testing.T) {
 
 	type Test struct {
 		in  map[string]interface{}
@@ -30,39 +30,42 @@ func TestSignUp(t *testing.T) {
 	}
 	userTest := []Test{
 		{map[string]interface{}{
-			"Usernamea": "mao2",
-			"Email":     "mao1@user",
-			"Password":  "mao"},
+			"contenta": "hihi"},
 			http.StatusInternalServerError,
 			errInternalServer},
 		{map[string]interface{}{
-			"Username": " ",
-			"Email":    "mao1@user",
-			"Password": "mao"},
+			"content": ""},
+			map[string]interface{}{
+				"UserID": 2},
 			http.StatusBadRequest,
 			errBadRequest},
 		{map[string]interface{}{
-			"Username": "mao",
-			"Email":    "mao1@user",
-			"Password": "mao"},
+			"content": "hihi"},
+			map[string]interface{}{
+				"UserID": 3},
 			http.StatusCreated,
 			nil},
 	}
 
 	for _, test := range userTest {
 		// create an instance of our test object
-		userService := new(mocks.IUserService)
+		postService := new(mocks.IPostService)
 
 		var testdata *model.User
-		mapstructure.Decode(test.in, &testdata)
+		mapstructure.Decode(test.inPost, &testdata)
 		//set up expectations
-		userService.On("SignUpService", testdata).Return(test.out, test.err)
-		userController := UserController{
-			userService,
+		postService.On("SignUpService", testdata).Return(test.out, test.err)
+		postController := PostController{
+			postService,
 		}
 
+		var testdata2 *model.User
+		mapstructure.Decode(test.in, &testdata2)
+		authmiddleware := jwt_handler.JwtHandler()
+		token, _, _ := authmiddleware.TokenGenerator(testdata)
+
 		// call the code we are testing
-		b, _ := json.Marshal(test.in)
+		b, _ := json.Marshal(test.inPost)
 		body := strings.NewReader(string(b))
 		req := httptest.NewRequest("POST", "http://localhost:8080/users/signup", body)
 		w := httptest.NewRecorder()

@@ -23,6 +23,10 @@ type IPostService interface {
 }
 
 func (service *PostService) CreatePostService(post *model.Post) (code int, err error) {
+	if post.Content == "" {
+		err = errors.New("Post content cannot be blank.")
+		return http.StatusBadRequest, err
+	}
 	err = service.CreatePost(post)
 	if err != nil {
 		return http.StatusInternalServerError, err

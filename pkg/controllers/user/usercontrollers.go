@@ -41,7 +41,13 @@ func (controller *UserController) SignUpHandler(c *gin.Context) {
 }
 
 func (controller *UserController) GetAllUsersHandler(c *gin.Context) {
-	current_page, _ := strconv.Atoi(c.Query("page"))
+	current_page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
 	users, code, err := controller.GetAllUsersService(current_page)
 	if err != nil {
@@ -51,7 +57,6 @@ func (controller *UserController) GetAllUsersHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(code, users)
-	return
 }
 
 func (controllers *UserController) GetUserHandler(c *gin.Context) {
