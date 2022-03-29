@@ -54,17 +54,10 @@ func (controllers *PostController) CreatePostHandler(c *gin.Context) {
 
 func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
 
-	postid, err := strconv.Atoi(c.Param("postid"))
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
+	postid, _ := strconv.Atoi(c.Param("postid"))
 
 	var data map[string]interface{}
-	err = c.BindJSON(&data)
+	err := c.BindJSON(&data)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -98,29 +91,10 @@ func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
 	return
 }
 
-func (controllers *PostController) DeleteAllPostsHandler(c *gin.Context) {
-	code, err := controllers.DeleteAllPostsService()
-	if err != nil {
-		c.AbortWithStatusJSON(code, gin.H{
-			"message": err.Error(),
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "All users deleted.",
-		})
-	}
-}
-
 func (controllers *PostController) DeletePostHandler(c *gin.Context) {
 
-	postid, err := strconv.Atoi(c.Param("postid"))
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
+	postid, _ := strconv.Atoi(c.Param("postid"))
+
 	authmiddleware := jwt_handler.JwtHandler()
 
 	claims, err := authmiddleware.GetClaimsFromJWT(c)
@@ -141,24 +115,30 @@ func (controllers *PostController) DeletePostHandler(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "Post deleted successfully",
 	})
 	return
+}
+
+func (controllers *PostController) DeleteAllPostsHandler(c *gin.Context) {
+	code, err := controllers.DeleteAllPostsService()
+	if err != nil {
+		c.AbortWithStatusJSON(code, gin.H{
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "All users deleted.",
+		})
+	}
 }
 
 func (controllers *PostController) GetPostHandler(c *gin.Context) {
 
 	var post *model.Post
 
-	postid, err := strconv.Atoi(c.Param("postid"))
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
+	postid, _ := strconv.Atoi(c.Param("postid"))
 
 	post, code, err := controllers.GetPostService(postid)
 	if err != nil {

@@ -3,7 +3,6 @@ package postcontrollers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -11,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	mocks "github.com/maoaeri/openapi/mocks/pkg/services/userservice"
+	mocks "github.com/maoaeri/openapi/mocks/pkg/services/postservice"
 	jwt_handler "github.com/maoaeri/openapi/pkg"
 	"github.com/maoaeri/openapi/pkg/model"
 	"github.com/mitchellh/mapstructure"
@@ -24,45 +23,48 @@ var errInternalServer = errors.New("internal server error")
 func TestCreatePost(t *testing.T) {
 
 	type Test struct {
-		in  map[string]interface{}
-		out int
-		err error
+		inPost map[string]interface{}
+		inUser map[string]interface{}
+		out    int
+		err    error
 	}
-	userTest := []Test{
+	postTest := []Test{
 		{map[string]interface{}{
 			"contenta": "hihi"},
+			map[string]interface{}{
+				"UserID": 0},
 			http.StatusInternalServerError,
 			errInternalServer},
 		{map[string]interface{}{
 			"content": ""},
 			map[string]interface{}{
-				"UserID": 2},
+				"UserID": 0},
 			http.StatusBadRequest,
 			errBadRequest},
 		{map[string]interface{}{
 			"content": "hihi"},
 			map[string]interface{}{
-				"UserID": 3},
+				"UserID": 0},
 			http.StatusCreated,
 			nil},
 	}
 
-	for _, test := range userTest {
+	for _, test := range postTest {
 		// create an instance of our test object
 		postService := new(mocks.IPostService)
 
-		var testdata *model.User
+		var testdata *model.Post
 		mapstructure.Decode(test.inPost, &testdata)
 		//set up expectations
-		postService.On("SignUpService", testdata).Return(test.out, test.err)
+		postService.On("CreatePostService", testdata).Return(test.out, test.err)
 		postController := PostController{
 			postService,
 		}
 
 		var testdata2 *model.User
-		mapstructure.Decode(test.in, &testdata2)
+		mapstructure.Decode(test.inUser, &testdata2)
 		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)
+		token, _, _ := authmiddleware.TokenGenerator(testdata2)
 
 		// call the code we are testing
 		b, _ := json.Marshal(test.inPost)
@@ -72,7 +74,11 @@ func TestCreatePost(t *testing.T) {
 
 		_, engine := gin.CreateTestContext(w)
 
-		engine.POST("/users/signup", userController.SignUpHandler)
+		engine.POST("/users/signup", postController.CreatePostHandler)
+		req.Header = map[string][]string{
+			"Authorization": {"Bearer " + token},
+		}
+
 		engine.ServeHTTP(w, req)
 
 		expectedResult := test.out
@@ -84,59 +90,66 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
-func TestGetUser(t *testing.T) {
+func TestUpdatePost(t *testing.T) {
 
 	type Test struct {
-		email_param string
-		in          map[string]interface{}
-		out         int
-		err         error
+		postid_param string
+		inPost       map[string]interface{}
+		inUser       map[string]interface{}
+		out          int
+		err          error
 	}
-	userTest := []Test{
-		{"mao1@user",
+	postTest := []Test{
+		{"1",
 			map[string]interface{}{
-				"UserID":    1,
-				"Usernamea": "mao2",
-				"Email":     "mao1@user",
-				"Password":  "mao",
-				"Role":      "user"},
+				"contenta": "hihi"},
+			map[string]interface{}{
+				"UserID": 0},
 			http.StatusInternalServerError,
 			errInternalServer},
-		{"mao2@user", map[string]interface{}{
-			"UserID":   1,
-			"Username": "a",
-			"Email":    "mao1@user",
-			"Password": "mao",
-			"Role":     "user"},
+		{"1",
+			map[string]interface{}{
+				"content": ""},
+			map[string]interface{}{
+				"UserID": 0},
 			http.StatusBadRequest,
 			errBadRequest},
-		{"mao2@user",
+		{"1",
 			map[string]interface{}{
-				"UserID":   1,
-				"Username": "mao3",
-				"Email":    "mao2@user",
-				"Password": "mao",
-				"Role":     "user"},
+				"content": "hihi"},
+			map[string]interface{}{
+				"UserID": 0},
 			http.StatusOK,
 			nil},
 	}
-	for _, test := range userTest {
+
+	for _, test := range postTest {
 		// create an instance of our test object
-		userService := new(mocks.IUserService)
+		postService := new(mocks.IPostService)
 
-		var testdata *model.User
-		mapstructure.Decode(test.in, &testdata)
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)
+		//convert to post model
+		var testdata *model.Post
+		mapstructure.Decode(test.inPost, &testdata)
 
-		//var returnTest *model.User
+		var testdata2 *model.User
+		mapstructure.Decode(test.inUser, &testdata2)
+
+		a, _ := strconv.Atoi(test.postid_param)
 		//set up expectations
-		userService.On("GetUserService", test.email_param, test.in["Email"]).Return(testdata, test.out, test.err)
+		postService.On("UpdatePostService", a, test.inUser["UserID"], test.inPost).Return(test.out, test.err)
+		postController := PostController{
+			postService,
+		}
 
-		userController := UserController{userService}
+		//generate user token
+
+		authmiddleware := jwt_handler.JwtHandler()
+		token, _, _ := authmiddleware.TokenGenerator(testdata2)
 
 		// call the code we are testing
-		req := httptest.NewRequest("GET", "http://localhost:8080/users/"+test.email_param, nil)
+		b, _ := json.Marshal(test.inPost)
+		body := strings.NewReader(string(b))
+		req := httptest.NewRequest("PUT", "http://localhost:8080/posts/"+test.postid_param, body)
 		req.Header = map[string][]string{
 			"Authorization": {"Bearer " + token},
 		}
@@ -145,229 +158,217 @@ func TestGetUser(t *testing.T) {
 
 		_, engine := gin.CreateTestContext(w)
 
-		engine.GET("/users/:email", userController.GetUserHandler)
+		engine.PUT("/posts/:postid", postController.UpdatePostHandler)
 		engine.ServeHTTP(w, req)
 
-		expectedCode := test.out
+		expectedResult := test.out
 
-		actualCode := w.Code
+		got := w.Code
 
 		// assert that the expectations were met
-		assert.Equal(t, expectedCode, actualCode)
+		assert.Equal(t, expectedResult, got)
 	}
 }
 
-func TestGetAllUsers(t *testing.T) {
+func TestDeletePost(t *testing.T) {
+
+	//no need for post info
+
+	type Test struct {
+		postid_param string
+		inUser       map[string]interface{}
+		out          int
+		err          error
+	}
+	postTest := []Test{
+		{"1",
+			map[string]interface{}{
+				"UserID": 0},
+			http.StatusBadRequest,
+			errBadRequest},
+		{"1",
+			map[string]interface{}{
+				"UserID": 0},
+			http.StatusOK,
+			nil},
+	}
+
+	for _, test := range postTest {
+		// create an instance of our test object
+		postService := new(mocks.IPostService)
+
+		//convert to user model
+		var testdata2 *model.User
+		mapstructure.Decode(test.inUser, &testdata2)
+
+		a, _ := strconv.Atoi(test.postid_param)
+		//set up expectations
+		postService.On("DeletePostService", a, test.inUser["UserID"]).Return(test.out, test.err)
+		postController := PostController{
+			postService,
+		}
+
+		//generate user token
+
+		authmiddleware := jwt_handler.JwtHandler()
+		token, _, _ := authmiddleware.TokenGenerator(testdata2)
+
+		// call the code we are testing
+		req := httptest.NewRequest("DELETE", "http://localhost:8080/posts/"+test.postid_param, nil)
+		req.Header = map[string][]string{
+			"Authorization": {"Bearer " + token},
+		}
+
+		w := httptest.NewRecorder()
+
+		_, engine := gin.CreateTestContext(w)
+
+		engine.DELETE("/posts/:postid", postController.DeletePostHandler)
+		engine.ServeHTTP(w, req)
+
+		expectedResult := test.out
+
+		got := w.Code
+
+		// assert that the expectations were met
+		assert.Equal(t, expectedResult, got)
+	}
+}
+
+func TestDeleteAllPosts(t *testing.T) {
+
+	//no need for post info
+
+	type Test struct {
+		out int
+		err error
+	}
+	postTest := []Test{
+		{http.StatusInternalServerError,
+			errInternalServer},
+		{http.StatusOK,
+			nil},
+	}
+
+	for _, test := range postTest {
+		// create an instance of our test object
+		postService := new(mocks.IPostService)
+
+		//set up expectations
+		postService.On("DeleteAllPostsService").Return(test.out, test.err)
+		postController := PostController{
+			postService,
+		}
+
+		// call the code we are testing
+		req := httptest.NewRequest("DELETE", "http://localhost:8080/posts", nil)
+
+		w := httptest.NewRecorder()
+
+		_, engine := gin.CreateTestContext(w)
+
+		engine.DELETE("/posts", postController.DeleteAllPostsHandler)
+		engine.ServeHTTP(w, req)
+
+		expectedResult := test.out
+
+		got := w.Code
+
+		// assert that the expectations were met
+		assert.Equal(t, expectedResult, got)
+	}
+}
+
+func TestGetPost(t *testing.T) {
+
+	//no need for post info
+
+	type Test struct {
+		postid_param string
+		out          int
+		err          error
+	}
+	postTest := []Test{
+		{"1",
+			http.StatusBadRequest,
+			errBadRequest},
+		{"1",
+			http.StatusOK,
+			nil},
+	}
+
+	for _, test := range postTest {
+		// create an instance of our test object
+		postService := new(mocks.IPostService)
+
+		var returnData *model.Post
+
+		a, _ := strconv.Atoi(test.postid_param)
+		//set up expectations
+		postService.On("GetPostService", a).Return(returnData, test.out, test.err)
+		postController := PostController{
+			postService,
+		}
+
+		// call the code we are testing
+		req := httptest.NewRequest("GET", "http://localhost:8080/posts/"+test.postid_param, nil)
+
+		w := httptest.NewRecorder()
+
+		_, engine := gin.CreateTestContext(w)
+
+		engine.GET("/posts/:postid", postController.GetPostHandler)
+		engine.ServeHTTP(w, req)
+
+		expectedResult := test.out
+
+		got := w.Code
+
+		// assert that the expectations were met
+		assert.Equal(t, expectedResult, got)
+	}
+}
+
+func TestGetAllPosts(t *testing.T) {
+
+	//no need for post info
 
 	type Test struct {
 		page_param string
-		//in         map[string]interface{}
-		out int
-		err error
+		out        int
+		err        error
 	}
-	userTest := []Test{
-		{"1", http.StatusOK, nil},
-		//{"1s", http.StatusBadRequest, errBadRequest},
-		{"1", http.StatusInternalServerError, errInternalServer},
-	}
-	for _, test := range userTest {
-		// create an instance of our test object
-		userService := new(mocks.IUserService)
-
-		/*var testdata []model.User
-		mapstructure.Decode(test.in, &testdata)
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)*/
-		if test.out == 500 {
-			fmt.Println(test.err.Error())
-		}
-		a, _ := strconv.Atoi(test.page_param)
-		var returnTest []model.User
-		//set up expectations
-		userService.On("GetAllUsersService", a).Return(returnTest, test.out, test.err)
-
-		userController := UserController{userService}
-
-		// call the code we are testing
-		req := httptest.NewRequest("GET", "http://localhost:8080/users?page="+test.page_param, nil)
-
-		w := httptest.NewRecorder()
-
-		_, engine := gin.CreateTestContext(w)
-
-		engine.GET("/users", userController.GetAllUsersHandler)
-		engine.ServeHTTP(w, req)
-
-		expectedCode := test.out
-
-		actualCode := w.Code
-
-		// assert that the expectations were met
-		assert.Equal(t, expectedCode, actualCode)
-	}
-}
-
-func TestUpdateUser(t *testing.T) {
-
-	type Test struct {
-		email_param string
-		in          map[string]interface{}
-		out         int
-		err         error
-	}
-	userTest := []Test{
-		{"mao1@user",
-			map[string]interface{}{
-				"Email": "mao1@user"},
+	postTest := []Test{
+		{"1",
 			http.StatusInternalServerError,
 			errInternalServer},
-		{"mao2@user",
-			map[string]interface{}{
-				"Email": "maoo2@user"},
-			http.StatusBadRequest,
-			errBadRequest},
-		{"mao3@user",
-			map[string]interface{}{
-				"Email": "mao3@user"},
+		{"1",
 			http.StatusOK,
 			nil},
 	}
 
-	for _, test := range userTest {
+	for _, test := range postTest {
 		// create an instance of our test object
-		userService := new(mocks.IUserService)
+		postService := new(mocks.IPostService)
 
-		var testdata *model.User
-		mapstructure.Decode(test.in, &testdata)
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)
+		//	a, _ := strconv.Atoi(test.page_param)
+		var returnData []model.Post
+
 		//set up expectations
-		userService.On("UpdateUserService", test.email_param, test.in["Email"], test.in).Return(test.out, test.err)
-		userController := UserController{
-			userService,
+		//why page param must be 0?
+		postService.On("GetAllPostsService", 0).Return(returnData, test.out, test.err)
+		postController := PostController{
+			postService,
 		}
 
 		// call the code we are testing
-		b, _ := json.Marshal(test.in)
-		body := strings.NewReader(string(b))
-		req := httptest.NewRequest("PUT", "http://localhost:8080/users/"+test.email_param, body)
-		req.Header = map[string][]string{
-			"Authorization": {"Bearer " + token},
-		}
+		req := httptest.NewRequest("GET", "http://localhost:8080/posts", nil)
 
 		w := httptest.NewRecorder()
 
 		_, engine := gin.CreateTestContext(w)
 
-		//path := fmt.Sprintf("/users/%s", test.email_param)
-		engine.PUT("/users/:email", userController.UpdateUserHandler)
-		engine.ServeHTTP(w, req)
-
-		expectedResult := test.out
-
-		got := w.Code
-
-		// assert that the expectations were met
-		assert.Equal(t, expectedResult, got)
-	}
-}
-
-func TestDeleteUser(t *testing.T) {
-
-	type Test struct {
-		email_param string
-		in          map[string]interface{}
-		out         int
-		err         error
-	}
-	userTest := []Test{
-		{"mao1@user",
-			map[string]interface{}{
-				"Email": "mao1@user"},
-			200,
-			nil},
-		{"mao02@user",
-			map[string]interface{}{
-				"Email": "mao2@user",
-			},
-			http.StatusBadRequest,
-			errBadRequest},
-		{"mao3@user",
-			map[string]interface{}{
-				"Email": "mao3@user",
-			},
-			http.StatusInternalServerError,
-			errInternalServer},
-	}
-
-	for _, test := range userTest {
-		// create an instance of our test object
-		userService := new(mocks.IUserService)
-
-		var testdata *model.User
-		mapstructure.Decode(test.in, &testdata)
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)
-		//set up expectations
-		userService.On("DeleteUserService", test.email_param, test.in["Email"]).Return(test.out, test.err)
-		userController := UserController{
-			userService,
-		}
-
-		// call the code we are testing
-		req := httptest.NewRequest("DELETE", "http://localhost:8080/users/"+test.email_param, nil)
-		req.Header = map[string][]string{
-			"Authorization": {"Bearer " + token},
-		}
-
-		w := httptest.NewRecorder()
-
-		_, engine := gin.CreateTestContext(w)
-
-		//path := fmt.Sprintf("/users/%s", test.email_param)
-		engine.DELETE("/users/:email", userController.DeleteUserHandler)
-		engine.ServeHTTP(w, req)
-
-		expectedResult := test.out
-
-		got := w.Code
-
-		// assert that the expectations were met
-		assert.Equal(t, expectedResult, got)
-	}
-}
-
-func TestDeleteAllUsers(t *testing.T) {
-
-	type Test struct {
-		//in  map[string]interface{}
-		out int
-		err error
-	}
-	userTest := []Test{
-		{http.StatusOK, nil},
-		{http.StatusInternalServerError, errInternalServer},
-	}
-
-	for _, test := range userTest {
-		// create an instance of our test object
-		userService := new(mocks.IUserService)
-
-		//set up expectations
-		userService.On("DeleteAllUsersService").Return(test.out, test.err)
-		userController := UserController{
-			userService,
-		}
-
-		// call the code we are testing
-		req := httptest.NewRequest("DELETE", "http://localhost:8080/users", nil)
-
-		w := httptest.NewRecorder()
-
-		_, engine := gin.CreateTestContext(w)
-
-		//path := fmt.Sprintf("/users/%s", test.email_param)
-		engine.DELETE("/users", userController.DeleteAllUsersHandler)
+		engine.GET("/posts", postController.GetAllPostsHandler)
 		engine.ServeHTTP(w, req)
 
 		expectedResult := test.out

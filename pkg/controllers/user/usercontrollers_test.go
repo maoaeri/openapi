@@ -3,7 +3,6 @@ package usercontrollers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -171,13 +170,6 @@ func TestGetAllUsers(t *testing.T) {
 		// create an instance of our test object
 		userService := new(mocks.IUserService)
 
-		/*var testdata []model.User
-		mapstructure.Decode(test.in, &testdata)
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata)*/
-		if test.out == 500 {
-			fmt.Println(test.err.Error())
-		}
 		a, _ := strconv.Atoi(test.page_param)
 		var returnTest []model.User
 		//set up expectations
