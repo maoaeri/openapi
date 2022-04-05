@@ -12,9 +12,9 @@ type IUserRepository interface {
 	CheckDuplicateEmail(email string) bool
 	CreateUser(user *model.User) error
 	GetAllUsers(page int) (users []model.User, err error)
-	GetUser(email string) (user *model.User, err error)
-	UpdateUser(email string, data map[string]interface{}) error
-	DeleteUser(email string) error
+	GetUser(userid int) (user *model.User, err error)
+	UpdateUser(userid int, data map[string]interface{}) error
+	DeleteUser(userid int) error
 	DeleteAllUsers() error
 }
 
@@ -57,9 +57,9 @@ func (userrepo *UserRepo) GetAllUsers(page int) (users []model.User, err error) 
 	return users, nil
 }
 
-func (userrepo *UserRepo) GetUser(email string) (user *model.User, err error) {
+func (userrepo *UserRepo) GetUser(userid int) (user *model.User, err error) {
 
-	result := userrepo.DB.First(&user, "email = ?", email)
+	result := userrepo.DB.First(&user, "user_id = ?", userid)
 	if result.Error != nil {
 		fmt.Println("Error in fetching user")
 		return user, result.Error
@@ -67,10 +67,10 @@ func (userrepo *UserRepo) GetUser(email string) (user *model.User, err error) {
 	return user, nil
 }
 
-func (userrepo *UserRepo) UpdateUser(email string, data map[string]interface{}) error {
+func (userrepo *UserRepo) UpdateUser(userid int, data map[string]interface{}) error {
 
-	user, _ := userrepo.GetUser(email)
-	result := userrepo.DB.Model(&user).Where("email = ?", email).Updates(data)
+	user, _ := userrepo.GetUser(userid)
+	result := userrepo.DB.Model(&user).Where("user_id = ?", userid).Updates(data)
 
 	if result.Error != nil {
 		return result.Error
@@ -78,10 +78,10 @@ func (userrepo *UserRepo) UpdateUser(email string, data map[string]interface{}) 
 	return nil
 }
 
-func (userrepo *UserRepo) DeleteUser(email string) error {
+func (userrepo *UserRepo) DeleteUser(userid int) error {
 
 	var user *model.User
-	user, _ = userrepo.GetUser(email)
+	user, _ = userrepo.GetUser(userid)
 
 	result := userrepo.DB.Delete(&user)
 	if result.Error != nil {

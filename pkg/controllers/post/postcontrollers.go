@@ -65,19 +65,7 @@ func (controllers *PostController) UpdatePostHandler(c *gin.Context) {
 		})
 	}
 
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-	userid_token := int(claims["userid"].(float64))
-
-	code, err := controllers.UpdatePostService(postid, userid_token, data)
+	code, err := controllers.UpdatePostService(postid, data)
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{
@@ -95,19 +83,7 @@ func (controllers *PostController) DeletePostHandler(c *gin.Context) {
 
 	postid, _ := strconv.Atoi(c.Param("postid"))
 
-	authmiddleware := jwt_handler.JwtHandler()
-
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-	userid_token := int(claims["userid"].(float64))
-
-	code, err := controllers.DeletePostService(postid, userid_token)
+	code, err := controllers.DeletePostService(postid)
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{

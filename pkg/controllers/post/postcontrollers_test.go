@@ -93,66 +93,40 @@ func TestCreatePost(t *testing.T) {
 func TestUpdatePost(t *testing.T) {
 
 	type Test struct {
-		postid_param string
-		inPost       map[string]interface{}
-		inUser       map[string]interface{}
-		out          int
-		err          error
+		inPost map[string]interface{}
+		out    int
+		err    error
 	}
 	postTest := []Test{
-		{"1",
-			map[string]interface{}{
-				"contenta": "hihi"},
-			map[string]interface{}{
-				"UserID": 0},
+		{map[string]interface{}{
+			"contenta": "hihi"},
 			http.StatusInternalServerError,
 			errInternalServer},
-		{"1",
-			map[string]interface{}{
-				"content": ""},
-			map[string]interface{}{
-				"UserID": 0},
+		{map[string]interface{}{
+			"content": ""},
 			http.StatusBadRequest,
 			errBadRequest},
-		{"1",
-			map[string]interface{}{
-				"content": "hihi"},
-			map[string]interface{}{
-				"UserID": 0},
+		{map[string]interface{}{
+			"content": "hihi"},
 			http.StatusOK,
 			nil},
 	}
+	var postid = 0
 
 	for _, test := range postTest {
 		// create an instance of our test object
 		postService := new(mocks.IPostService)
 
-		//convert to post model
-		var testdata *model.Post
-		mapstructure.Decode(test.inPost, &testdata)
-
-		var testdata2 *model.User
-		mapstructure.Decode(test.inUser, &testdata2)
-
-		a, _ := strconv.Atoi(test.postid_param)
 		//set up expectations
-		postService.On("UpdatePostService", a, test.inUser["UserID"], test.inPost).Return(test.out, test.err)
+		postService.On("UpdatePostService", postid, test.inPost).Return(test.out, test.err)
 		postController := PostController{
 			postService,
 		}
 
-		//generate user token
-
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata2)
-
 		// call the code we are testing
 		b, _ := json.Marshal(test.inPost)
 		body := strings.NewReader(string(b))
-		req := httptest.NewRequest("PUT", "http://localhost:8080/posts/"+test.postid_param, body)
-		req.Header = map[string][]string{
-			"Authorization": {"Bearer " + token},
-		}
+		req := httptest.NewRequest("PUT", "http://localhost:8080/posts/0", body)
 
 		w := httptest.NewRecorder()
 
@@ -175,49 +149,27 @@ func TestDeletePost(t *testing.T) {
 	//no need for post info
 
 	type Test struct {
-		postid_param string
-		inUser       map[string]interface{}
-		out          int
-		err          error
+		out int
+		err error
 	}
 	postTest := []Test{
-		{"1",
-			map[string]interface{}{
-				"UserID": 0},
-			http.StatusBadRequest,
-			errBadRequest},
-		{"1",
-			map[string]interface{}{
-				"UserID": 0},
-			http.StatusOK,
-			nil},
+		{http.StatusInternalServerError, errInternalServer},
+		{http.StatusOK, nil},
 	}
 
+	var postid = 0
 	for _, test := range postTest {
 		// create an instance of our test object
 		postService := new(mocks.IPostService)
 
-		//convert to user model
-		var testdata2 *model.User
-		mapstructure.Decode(test.inUser, &testdata2)
-
-		a, _ := strconv.Atoi(test.postid_param)
 		//set up expectations
-		postService.On("DeletePostService", a, test.inUser["UserID"]).Return(test.out, test.err)
+		postService.On("DeletePostService", postid).Return(test.out, test.err)
 		postController := PostController{
 			postService,
 		}
 
-		//generate user token
-
-		authmiddleware := jwt_handler.JwtHandler()
-		token, _, _ := authmiddleware.TokenGenerator(testdata2)
-
 		// call the code we are testing
-		req := httptest.NewRequest("DELETE", "http://localhost:8080/posts/"+test.postid_param, nil)
-		req.Header = map[string][]string{
-			"Authorization": {"Bearer " + token},
-		}
+		req := httptest.NewRequest("DELETE", "http://localhost:8080/posts/0", nil)
 
 		w := httptest.NewRecorder()
 

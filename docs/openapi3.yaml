@@ -77,15 +77,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Response'
-  /users/{email}:
+  /users/{userid}:
     parameters:
       - name: email
         in: path
-        description: email of user
+        description: id of user
         required: true
         schema:
-          type: string
-          pattern: '\S[@]\S'
+          type: integer
+          format: int32
     get:
       summary: Get user
       operationId: GetUser
@@ -251,6 +251,8 @@ components:
     UpdateUserRequest:
       type: object
       properties:
+        userid:
+          type: integer
         username:
           type: string
         email:

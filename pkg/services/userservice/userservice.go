@@ -21,9 +21,9 @@ type UserService struct {
 type IUserService interface {
 	SignUpService(user *model.User) (code int, err error)
 	GetAllUsersService(page int) (users []model.User, code int, err error)
-	GetUserService(email_param string, email_token string) (user *model.User, code int, err error)
-	UpdateUserService(email_param string, email_token string, data map[string]interface{}) (code int, err error)
-	DeleteUserService(email_param string, email_token string) (code int, err error)
+	GetUserService(userid int) (user *model.User, code int, err error)
+	UpdateUserService(userid int, data map[string]interface{}) (code int, err error)
+	DeleteUserService(userid int) (code int, err error)
 	DeleteAllUsersService() (code int, err error)
 }
 
@@ -57,57 +57,47 @@ func (service *UserService) SignUpService(user *model.User) (code int, err error
 
 func (service *UserService) GetAllUsersService(page int) (users []model.User, code int, err error) {
 	users, err = service.GetAllUsers(page)
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		err = errors.New("There is no such user.")
+		return nil, http.StatusBadRequest, err
+	} else if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
 	return users, http.StatusOK, nil
 }
 
-func (service *UserService) GetUserService(email_param string, email_token string) (user *model.User, code int, err error) {
-	if email_param == email_token {
-		user, err = service.GetUser(email_param)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			err = errors.New("There is no such user.")
-			return nil, http.StatusBadRequest, err
-		} else if err != nil {
-			return nil, http.StatusInternalServerError, err
-		}
-		return user, http.StatusOK, nil
-	} else {
-		err = errors.New("You cannot get other user's information.")
+func (service *UserService) GetUserService(userid int) (user *model.User, code int, err error) {
+	user, err = service.GetUser(userid)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		err = errors.New("There is no such user.")
 		return nil, http.StatusBadRequest, err
+	} else if err != nil {
+		return nil, http.StatusInternalServerError, err
 	}
+	return user, http.StatusOK, nil
 }
 
-func (service *UserService) UpdateUserService(email_param string, email_token string, data map[string]interface{}) (code int, err error) {
-	if email_param == email_token {
-		if email_param != data["email"] {
-			err = errors.New("Wrong email")
-			return http.StatusBadRequest, err
-		}
-
-		err = service.UpdateUser(email_param, data)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		return http.StatusOK, nil
-	} else {
-		err = errors.New("You cannot update other user's information.")
+func (service *UserService) UpdateUserService(userid int, data map[string]interface{}) (code int, err error) {
+	if userid != data["userid"].(int) {
+		err = errors.New("Wrong id")
 		return http.StatusBadRequest, err
 	}
+
+	err = service.UpdateUser(userid, data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+
 }
 
-func (service *UserService) DeleteUserService(email_param string, email_token string) (code int, err error) {
-	if email_param == email_token {
-		err = service.DeleteUser(email_param)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		return http.StatusOK, nil
-	} else {
-		err = errors.New("You cannot delete other user's information.")
-		return http.StatusBadRequest, err
+func (service *UserService) DeleteUserService(userid int) (code int, err error) {
+	err = service.DeleteUser(userid)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
+	return http.StatusOK, nil
+
 }
 
 func (service *UserService) DeleteAllUsersService() (code int, err error) {

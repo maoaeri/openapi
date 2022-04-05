@@ -3,10 +3,13 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	jwt_handler "github.com/maoaeri/openapi/pkg"
+	api "github.com/maoaeri/openapi/pkg/database"
+	"github.com/maoaeri/openapi/pkg/model"
 )
 
 type permInfo struct {
@@ -31,7 +34,7 @@ var userPerm = []permInfo{
 }
 
 // Rejected checks if a given request should be rejected.
-func Rejected(c *gin.Context, role string) bool {
+func RejectedRole(c *gin.Context, role string) bool {
 	path := c.Request.URL.Path // the path of the url that the user wish to visit
 	method := c.Request.Method //the method
 
@@ -52,6 +55,32 @@ func Rejected(c *gin.Context, role string) bool {
 	}
 
 	// Reject
+	return true
+}
+
+func RejectedInfor(c *gin.Context, role string, userid int) bool {
+	path := c.Request.URL.Path
+
+	if role == "admin" {
+		return false
+	}
+
+	if strings.HasPrefix(path, "/posts/") {
+		var post *model.Post
+		postid, _ := strconv.Atoi(c.Param("postid"))
+		connection := api.GetDB()
+		defer api.CloseDB(connection)
+		_ = connection.Where("post_id = ?", postid).First(&post)
+		if post.UserID == userid {
+			return false
+		}
+	}
+	if strings.HasPrefix(path, "/users/") {
+		userid_param, _ := strconv.Atoi(c.Param("userid"))
+		if userid_param == userid {
+			return false
+		}
+	}
 	return true
 }
 
@@ -78,7 +107,14 @@ func PermissionMiddleware() gin.HandlerFunc {
 			return
 		}
 		role := claims["role"].(string)
-		if Rejected(c, role) {
+		userid := int(claims["userid"].(float64))
+
+		if RejectedRole(c, role) {
+			PermissionDenied(c)
+			return
+		}
+
+		if RejectedInfor(c, role, userid) {
 			PermissionDenied(c)
 			return
 		}

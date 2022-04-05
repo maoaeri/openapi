@@ -42,9 +42,9 @@ func InitRouter() {
 	router.Use(middleware.PermissionMiddleware())
 	user_routes := router.Group("/users")
 	{
-		user_routes.DELETE("/:email", controllers.UserController.DeleteUserHandler)
-		user_routes.GET("/:email", controllers.UserController.GetUserHandler)
-		user_routes.PUT("/:email", controllers.UserController.UpdateUserHandler)
+		user_routes.DELETE("/:userid", controllers.UserController.DeleteUserHandler)
+		user_routes.GET("/:userid", controllers.UserController.GetUserHandler)
+		user_routes.PUT("/:userid", controllers.UserController.UpdateUserHandler)
 		user_routes.GET("", controllers.UserController.GetAllUsersHandler)
 		user_routes.DELETE("", controllers.UserController.DeleteAllUsersHandler)
 	}

@@ -33,20 +33,20 @@ func (_m *IUserService) DeleteAllUsersService() (int, error) {
 	return r0, r1
 }
 
-// DeleteUserService provides a mock function with given fields: email_param, email_token
-func (_m *IUserService) DeleteUserService(email_param string, email_token string) (int, error) {
-	ret := _m.Called(email_param, email_token)
+// DeleteUserService provides a mock function with given fields: userid
+func (_m *IUserService) DeleteUserService(userid int) (int, error) {
+	ret := _m.Called(userid)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(string, string) int); ok {
-		r0 = rf(email_param, email_token)
+	if rf, ok := ret.Get(0).(func(int) int); ok {
+		r0 = rf(userid)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(email_param, email_token)
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(userid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -84,13 +84,13 @@ func (_m *IUserService) GetAllUsersService(page int) ([]model.User, int, error) 
 	return r0, r1, r2
 }
 
-// GetUserService provides a mock function with given fields: email_param, email_token
-func (_m *IUserService) GetUserService(email_param string, email_token string) (*model.User, int, error) {
-	ret := _m.Called(email_param, email_token)
+// GetUserService provides a mock function with given fields: userid
+func (_m *IUserService) GetUserService(userid int) (*model.User, int, error) {
+	ret := _m.Called(userid)
 
 	var r0 *model.User
-	if rf, ok := ret.Get(0).(func(string, string) *model.User); ok {
-		r0 = rf(email_param, email_token)
+	if rf, ok := ret.Get(0).(func(int) *model.User); ok {
+		r0 = rf(userid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -98,15 +98,15 @@ func (_m *IUserService) GetUserService(email_param string, email_token string) (
 	}
 
 	var r1 int
-	if rf, ok := ret.Get(1).(func(string, string) int); ok {
-		r1 = rf(email_param, email_token)
+	if rf, ok := ret.Get(1).(func(int) int); ok {
+		r1 = rf(userid)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(string, string) error); ok {
-		r2 = rf(email_param, email_token)
+	if rf, ok := ret.Get(2).(func(int) error); ok {
+		r2 = rf(userid)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -135,20 +135,20 @@ func (_m *IUserService) SignUpService(user *model.User) (int, error) {
 	return r0, r1
 }
 
-// UpdateUserService provides a mock function with given fields: email_param, email_token, data
-func (_m *IUserService) UpdateUserService(email_param string, email_token string, data map[string]interface{}) (int, error) {
-	ret := _m.Called(email_param, email_token, data)
+// UpdateUserService provides a mock function with given fields: userid, data
+func (_m *IUserService) UpdateUserService(userid int, data map[string]interface{}) (int, error) {
+	ret := _m.Called(userid, data)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) int); ok {
-		r0 = rf(email_param, email_token, data)
+	if rf, ok := ret.Get(0).(func(int, map[string]interface{}) int); ok {
+		r0 = rf(userid, data)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, map[string]interface{}) error); ok {
-		r1 = rf(email_param, email_token, data)
+	if rf, ok := ret.Get(1).(func(int, map[string]interface{}) error); ok {
+		r1 = rf(userid, data)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -54,13 +54,13 @@ func (_m *IUserRepository) DeleteAllUsers() error {
 	return r0
 }
 
-// DeleteUser provides a mock function with given fields: email
-func (_m *IUserRepository) DeleteUser(email string) error {
-	ret := _m.Called(email)
+// DeleteUser provides a mock function with given fields: userid
+func (_m *IUserRepository) DeleteUser(userid int) error {
+	ret := _m.Called(userid)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(int) error); ok {
+		r0 = rf(userid)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -91,13 +91,13 @@ func (_m *IUserRepository) GetAllUsers(page int) ([]model.User, error) {
 	return r0, r1
 }
 
-// GetUser provides a mock function with given fields: email
-func (_m *IUserRepository) GetUser(email string) (*model.User, error) {
-	ret := _m.Called(email)
+// GetUser provides a mock function with given fields: userid
+func (_m *IUserRepository) GetUser(userid int) (*model.User, error) {
+	ret := _m.Called(userid)
 
 	var r0 *model.User
-	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(int) *model.User); ok {
+		r0 = rf(userid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -105,8 +105,8 @@ func (_m *IUserRepository) GetUser(email string) (*model.User, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(email)
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(userid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -114,13 +114,13 @@ func (_m *IUserRepository) GetUser(email string) (*model.User, error) {
 	return r0, r1
 }
 
-// UpdateUser provides a mock function with given fields: email, data
-func (_m *IUserRepository) UpdateUser(email string, data map[string]interface{}) error {
-	ret := _m.Called(email, data)
+// UpdateUser provides a mock function with given fields: userid, data
+func (_m *IUserRepository) UpdateUser(userid int, data map[string]interface{}) error {
+	ret := _m.Called(userid, data)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
-		r0 = rf(email, data)
+	if rf, ok := ret.Get(0).(func(int, map[string]interface{}) error); ok {
+		r0 = rf(userid, data)
 	} else {
 		r0 = ret.Error(0)
 	}

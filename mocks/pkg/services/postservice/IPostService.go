@@ -54,20 +54,20 @@ func (_m *IPostService) DeleteAllPostsService() (int, error) {
 	return r0, r1
 }
 
-// DeletePostService provides a mock function with given fields: postid_param, userid_token
-func (_m *IPostService) DeletePostService(postid_param int, userid_token int) (int, error) {
-	ret := _m.Called(postid_param, userid_token)
+// DeletePostService provides a mock function with given fields: postid_param
+func (_m *IPostService) DeletePostService(postid_param int) (int, error) {
+	ret := _m.Called(postid_param)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(int, int) int); ok {
-		r0 = rf(postid_param, userid_token)
+	if rf, ok := ret.Get(0).(func(int) int); ok {
+		r0 = rf(postid_param)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(postid_param, userid_token)
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(postid_param)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -135,20 +135,20 @@ func (_m *IPostService) GetPostService(postid int) (*model.Post, int, error) {
 	return r0, r1, r2
 }
 
-// UpdatePostService provides a mock function with given fields: postid_param, userid_token, data
-func (_m *IPostService) UpdatePostService(postid_param int, userid_token int, data map[string]interface{}) (int, error) {
-	ret := _m.Called(postid_param, userid_token, data)
+// UpdatePostService provides a mock function with given fields: postid_param, data
+func (_m *IPostService) UpdatePostService(postid_param int, data map[string]interface{}) (int, error) {
+	ret := _m.Called(postid_param, data)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(int, int, map[string]interface{}) int); ok {
-		r0 = rf(postid_param, userid_token, data)
+	if rf, ok := ret.Get(0).(func(int, map[string]interface{}) int); ok {
+		r0 = rf(postid_param, data)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, map[string]interface{}) error); ok {
-		r1 = rf(postid_param, userid_token, data)
+	if rf, ok := ret.Get(1).(func(int, map[string]interface{}) error); ok {
+		r1 = rf(postid_param, data)
 	} else {
 		r1 = ret.Error(1)
 	}

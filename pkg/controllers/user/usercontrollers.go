@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	jwt_handler "github.com/maoaeri/openapi/pkg"
 	"github.com/maoaeri/openapi/pkg/model"
 	"github.com/maoaeri/openapi/pkg/services/userservice"
 )
@@ -60,20 +59,9 @@ func (controller *UserController) GetAllUsersHandler(c *gin.Context) {
 }
 
 func (controllers *UserController) GetUserHandler(c *gin.Context) {
-	email_param := c.Param("email")
+	userid, _ := strconv.Atoi(c.Param("userid"))
 
-	authmiddleware := jwt_handler.JwtHandler()
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-
-	email_token := claims["email"].(string)
-	user, code, err := controllers.GetUserService(email_param, email_token)
+	user, code, err := controllers.GetUserService(userid)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -91,21 +79,14 @@ func (controllers *UserController) UpdateUserHandler(c *gin.Context) {
 	err := c.BindJSON(&data)
 	if err != nil {
 		fmt.Println(err.Error())
-	}
-	email_param := c.Param("email")
-
-	authmiddleware := jwt_handler.JwtHandler()
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
 		})
 		return
 	}
-	email_token := claims["email"].(string)
+	userid, _ := strconv.Atoi(c.Param("userid"))
 
-	code, err := controllers.UpdateUserService(email_param, email_token, data)
+	code, err := controllers.UpdateUserService(userid, data)
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{
@@ -120,21 +101,9 @@ func (controllers *UserController) UpdateUserHandler(c *gin.Context) {
 }
 
 func (controllers *UserController) DeleteUserHandler(c *gin.Context) {
-	email_param := c.Param("email")
+	userid, _ := strconv.Atoi(c.Param("userid"))
 
-	authmiddleware := jwt_handler.JwtHandler()
-	claims, err := authmiddleware.GetClaimsFromJWT(c)
-	if err != nil {
-		fmt.Println(err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "An error ocurred",
-		})
-		return
-	}
-
-	email_token := claims["email"].(string)
-
-	code, err := controllers.DeleteUserService(email_param, email_token)
+	code, err := controllers.DeleteUserService(userid)
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{
