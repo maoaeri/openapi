@@ -10,6 +10,8 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.17.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.5 // indirect
@@ -54,4 +56,4 @@ require (
 	gorm.io/driver/postgres v1.3.1
 )
 
-require github.com/elastic/go-elasticsearch/v8 v8.0.0
+require github.com/elastic/go-elasticsearch/v8 v8.1.0

@@ -1,7 +1,10 @@
 package main
 
-import initapi "github.com/maoaeri/openapi/pkg/init"
+import (
+	"github.com/maoaeri/openapi/pkg/database"
+)
 
 func main() {
-	initapi.Run()
+	//initapi.Run()
+	database.GetESClient()
 }
